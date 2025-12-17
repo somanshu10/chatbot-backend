@@ -6,6 +6,17 @@ const client = new OpenAI({
 });
 
 export default async function handler(req, res) {
+
+  // ✅ CORS HEADERS (CRITICAL)
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  // Handle preflight request
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -19,18 +30,13 @@ export default async function handler(req, res) {
         {
           role: "system",
           content: `
-You are a professional customer-support chatbot.
-Answer ONLY using the knowledge provided below.
-If the answer is not present, politely ask the user to contact support.
+You are a customer-support chatbot.
+Answer ONLY using the information below.
 
-KNOWLEDGE BASE:
 ${knowledgeBase}
 `
         },
-        {
-          role: "user",
-          content: message
-        }
+        { role: "user", content: message }
       ],
       temperature: 0.3
     });
@@ -42,7 +48,7 @@ ${knowledgeBase}
   } catch (error) {
     console.error(error);
     res.status(500).json({
-      reply: "Sorry, I’m having trouble responding right now."
+      reply: "Server error. Please try again."
     });
   }
 }
